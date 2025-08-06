@@ -25,6 +25,7 @@ def get_founder(company_name):
 
 # === Flask Routes ===
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     results = None
     error = None
@@ -37,16 +38,33 @@ def index():
 
         file = request.files['file']
         if file.filename == '':
-            error = "Please select a CSV file."
+            error = "Please select a file."
             return render_template('index.html', error=error)
 
         try:
-            df = pd.read_csv(file)
+            filename = file.filename.lower()
 
-            if "Company" not in df.columns:
-                error = "CSV must contain a column named 'Company'."
+            # === Detect and parse file format ===
+            if filename.endswith('.csv'):
+                df = pd.read_csv(file)
+
+            elif filename.endswith('.json'):
+                data = pd.read_json(file)
+                df = pd.DataFrame(data)
+
+            elif filename.endswith('.txt'):
+                lines = file.read().decode("utf-8").splitlines()
+                df = pd.DataFrame(lines, columns=["Company"])
+
+            else:
+                error = "Unsupported file type. Upload CSV, JSON, or TXT."
                 return render_template('index.html', error=error)
 
+            if "Company" not in df.columns:
+                error = "The file must contain a column named 'Company'."
+                return render_template('index.html', error=error)
+
+            # === Process founders ===
             founders = []
             for company in df["Company"]:
                 founder = get_founder(company)
