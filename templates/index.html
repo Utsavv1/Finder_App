@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Company Founder Finder</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="file"] {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+            margin-top: 20px;
+        }
+        .success {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏢 Company Founder Finder (Gemini API)</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv" required>
+        <br>
+        <button class="btn" type="submit">🔍 Find Founders</button>
+    </form>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% if results %}
+        <div class="success">
+            <h2>✅ Results</h2>
+            <table>
+                <tr>
+                    <th>Company</th>
+                    <th>Founder(s)</th>
+                </tr>
+                {% for row in results %}
+                <tr>
+                    <td>{{ row['Company'] }}</td>
+                    <td>{{ row['Founder(s)'] }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <a href="{{ url_for('download_file') }}" class="btn">📥 Download Result as CSV</a>
+        </div>
+    {% endif %}
+</body>
+</html>
