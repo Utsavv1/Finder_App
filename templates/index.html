@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Company Founder Finder</title>
+    <title>Company Founder & Location Finder</title>
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             margin: 50px;
         }
         h1 {
@@ -22,13 +22,21 @@
             border: 1px solid #ccc;
             padding: 10px;
         }
+        th {
+            background-color: #f2f2f2;
+        }
         .btn {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
             border: none;
+            text-decoration: none;
+            display: inline-block;
             cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
         }
         .error {
             color: red;
@@ -40,12 +48,12 @@
     </style>
 </head>
 <body>
-    <h1>🏢 Company Founder Finder (Gemini API)</h1>
+    <h1>🏢 Company Founder & Location Finder (Gemini API)</h1>
 
     <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".csv" required>
+        <input type="file" name="file" accept=".csv,.json,.txt" required>
         <br>
-        <button class="btn" type="submit">🔍 Find Founders</button>
+        <button class="btn" type="submit">🔍 Find Info</button>
     </form>
 
     {% if error %}
@@ -59,15 +67,17 @@
                 <tr>
                     <th>Company</th>
                     <th>Founder(s)</th>
+                    <th>Location</th>
                 </tr>
                 {% for row in results %}
                 <tr>
                     <td>{{ row['Company'] }}</td>
                     <td>{{ row['Founder(s)'] }}</td>
+                    <td>{{ row['Location'] }}</td>
                 </tr>
                 {% endfor %}
             </table>
-            <a href="{{ url_for('download_file') }}" class="btn">📥 Download Result as CSV</a>
+            <a href="{{ url_for('download_file') }}" class="btn">📥 Download CSV</a>
         </div>
     {% endif %}
 </body>

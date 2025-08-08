@@ -7,24 +7,36 @@ import os
 app = Flask(__name__)
 
 # === Configure Gemini API Key ===
-genai.configure(api_key="AIzaSyCqXNsHEsxlNXoW7JbuA8X4SuWJzRzjf1s")
+genai.configure(api_key="AIzaSyBx4i3Z684q0pZKzhQs2heXy2FBpykVpMU")  # Replace with your real key
 
 # === Function to Get Founders ===
 def get_founder(company_name):
     prompt = f"""
     Who is/are the founder(s) of the company named '{company_name}'?
-    Please only return the actual founder names (comma-separated) and nothing else.
+    Please return the actual founder names (comma-separated) and nothing else.
     Make sure they are correctly associated with this company.
     """
     try:
-        model = genai.GenerativeModel("gemini-2.0-flash-lite")
+        model = genai.GenerativeModel("gemini-2.5-flash-lite")
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        return f"Error: {e}"
+
+# === Function to Get Location ===
+def get_location(company_name):
+    prompt = f"""
+    What is the headquarters location (street, City, pincode, Country) of the company named '{company_name}'?
+    Please return the location in format: street, City, pincode, Country. Nothing else.
+    """
+    try:
+        model = genai.GenerativeModel("gemini-2.5-flash-lite")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
         return f"Error: {e}"
 
 # === Flask Routes ===
-@app.route('/', methods=['GET', 'POST'])
 @app.route('/', methods=['GET', 'POST'])
 def index():
     results = None
@@ -47,15 +59,12 @@ def index():
             # === Detect and parse file format ===
             if filename.endswith('.csv'):
                 df = pd.read_csv(file)
-
             elif filename.endswith('.json'):
                 data = pd.read_json(file)
                 df = pd.DataFrame(data)
-
             elif filename.endswith('.txt'):
                 lines = file.read().decode("utf-8").splitlines()
                 df = pd.DataFrame(lines, columns=["Company"])
-
             else:
                 error = "Unsupported file type. Upload CSV, JSON, or TXT."
                 return render_template('index.html', error=error)
@@ -64,15 +73,20 @@ def index():
                 error = "The file must contain a column named 'Company'."
                 return render_template('index.html', error=error)
 
-            # === Process founders ===
+            # === Process founders and locations ===
             founders = []
+            locations = []
             for company in df["Company"]:
                 founder = get_founder(company)
+                location = get_location(company)
                 founders.append(founder)
-                time.sleep(1)
+                locations.append(location)
+                time.sleep(1)  # Respect Gemini rate limits
 
             df["Founder(s)"] = founders
-            output_path = "company_with_founders.csv"
+            df["Location"] = locations
+
+            output_path = "company_with_founders_and_locations.csv"
             df.to_csv(output_path, index=False)
             file_download = output_path
             results = df.to_dict(orient="records")
@@ -84,7 +98,7 @@ def index():
 
 @app.route('/download')
 def download_file():
-    path = "company_with_founders.csv"
+    path = "company_with_founders_and_locations.csv"
     return send_file(path, as_attachment=True)
 
 if __name__ == '__main__':
